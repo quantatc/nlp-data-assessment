@@ -85,7 +85,7 @@ def anonymize_patient_data(df_input, pii_columns_to_hash, text_column_to_redact,
 # --- Main Execution ---
 if __name__ == '__main__':
     # Load the data
-    df = pd.read_csv('data/patient_behavior_data.csv', delimiter=';')
+    df = pd.read_csv('../data/raw/patient_behavior_data.csv', delimiter=';')
     print("\nOriginal DataFrame (first 3 rows):")
     print(df.head(3))
 
@@ -103,7 +103,7 @@ if __name__ == '__main__':
     print(anonymized_df[['patient_id', 'name', 'surname', notes_column + '_redacted' if notes_column + '_redacted' in anonymized_df.columns else notes_column]].head(3))
 
     # Export anonymized_patients.csv
-    output_csv_path = 'data/anonymized_patients.csv'
+    output_csv_path = '../data/processed/anonymized_patients.csv'
     try:
         # Select columns for export - exclude original notes if redacted version exists and is preferred
         cols_to_export = anonymized_df.columns.tolist()

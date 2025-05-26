@@ -4,7 +4,6 @@ This project focuses on NLP data assessment tasks, including data anonymization 
 
 ## Project Structure
 
-Follows a structure similar to Krish Naik's ML projects for scalability and maintainability.
 
 ```
 ├── .github/workflows          # CI/CD pipelines (optional)
@@ -23,7 +22,7 @@ Follows a structure similar to Krish Naik's ML projects for scalability and main
 │   │   ├── data_ingestion.py
 │   │   ├── data_transformation.py
 │   │   ├── model_trainer.py
-│   │   └── anonymizer.py      # Your existing anonymizer script
+│   │   └── anonymizer.py
 │   ├── pipeline/              # ML pipelines (e.g., training pipeline, prediction pipeline)
 │   │   ├── __init__.py
 │   │   ├── training_pipeline.py
@@ -60,7 +59,7 @@ Follows a structure similar to Krish Naik's ML projects for scalability and main
 2. Create a virtual environment (recommended):
    ```bash
    python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   venv\Scripts\activate #on windows
    ```
 3. Install dependencies:
    ```bash
@@ -69,7 +68,7 @@ Follows a structure similar to Krish Naik's ML projects for scalability and main
 
 ## Usage
 
-(Add instructions on how to run your project, e.g.,)
+.....instructions on how to run this project......
 
 Run Jupyter notebooks from the `notebooks` directory for EDA and model exploration.
 
