@@ -1,17 +1,16 @@
 import pandas as pd
 import numpy as np
-import pickle # For saving preprocessor/tokenizer if needed
+import pickle
 
-# Scikit-learn imports (add all from notebook)
+# Scikit-learn imports
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import RandomForestClassifier # Assuming concentration is categorical
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import f1_score, mean_absolute_error, classification_report, mean_squared_error, accuracy_score 
-# Add other metrics as used in the notebook
 
-# Deep Learning imports (TensorFlow/Keras - add all from notebook)
+# Deep Learning imports (TensorFlow/Keras)
 import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, Embedding, LSTM, Dense, Dropout, concatenate, Conv1D, GlobalMaxPooling1D
@@ -20,7 +19,7 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from tensorflow.keras.callbacks import EarlyStopping
 
 # Constants (paths, model parameters)
-PROCESSED_DATA_PATH = "data/processed/patient_behavior_data.csv" 
+PROCESSED_DATA_PATH = "data/processed/processed_patient_behavior_data.csv" 
 # Assuming EDA notebook saves its output here and Dockerfile copies `data/`
 # If using raw data and script does all preprocessing, change to "data/raw/patient_behavior_data.csv"
 
@@ -30,31 +29,30 @@ MAX_SEQ_LENGTH = 200 # Max length of sequences for padding
 EMBEDDING_DIM = 100
 
 # For model comparison output
-COMPARISON_RESULTS_FILE = "model_comparison_results.txt" # Or directly print to stdout
+COMPARISON_RESULTS_FILE = "model_comparison_results.txt"
 
 # --- 1. Load Data ---
 def load_data(csv_path):
     print(f"Loading data from {csv_path}...")
     df = pd.read_csv(csv_path)
-    # Basic cleaning if not already done by EDA (e.g., handle NaNs in doctor_notes for text models)
-    df['doctor_notes'].fillna('', inplace=True) 
-    df['processed_notes'].fillna('', inplace=True) # If 'processed_notes' is used by text models
     print("Data loaded successfully.")
     df.info()
     return df
 
 # --- 2. Feature Preparation ---
-# (This would be a refactored version of prepare_features_for_tabular_model from the notebook)
 def prepare_tabular_features(df_input, target_column):
     print(f"\nPreparing tabular features for target: '{target_column}'...")
     df = df_input.copy()
 
     y = df[target_column]
+    # Shift labels if they are in range like -2 to 2 for classification
+    if y.min() < 0 and (target_column == 'concentration' or target_column == 'impulsivity' or target_column == 'mood'): # Add other behavioral targets if they are used as classification target
+        print(f"Shifting target '{target_column}' by adding 2 to make labels non-negative for classification.")
+        y = y + 2
     
     behavioral_targets = ['concentration', 'impulsivity', 'mood', 'sleep', 'appetite', 'distractibility', 'hyperactivity']
     # potential_other_targets = [col for col in behavioral_targets if col != target_column] # This logic might be too aggressive if some behavioral are features
-    
-    # Simplified feature selection based on notebook's apparent choices for Random Forest
+   
     # Adjust based on actual features used in notebook's X_tab_rf
     numerical_features = ['bmi', 'weight', 'height', 'systolic', 'diastolic', 'is_medicated', 'dose_mg'] 
     categorical_features = ['gender', 'medication', 'bmi_category', 'bp_category']
@@ -99,6 +97,10 @@ def prepare_text_features(df_input, text_column_name, target_column_name=None):
     y_text = None
     if target_column_name and target_column_name in df.columns:
         y_text = df[target_column_name].values
+        # Shift labels if they are in range like -2 to 2 for classification
+        if y_text.min() < 0 and (target_column_name == 'concentration' or target_column_name == 'impulsivity' or target_column_name == 'mood'): # Add other behavioral targets
+            print(f"Shifting text target '{target_column_name}' by adding 2 to make labels non-negative for classification.")
+            y_text = y_text + 2
     
     # Save tokenizer for potential use in CLSTM if inputs need separate tokenization
     # with open('tokenizer.pkl', 'wb') as handle:
@@ -271,6 +273,7 @@ def main():
     if 'concentration' in df_full.columns:
         X_tab_rf, y_rf, preprocessor_rf = prepare_tabular_features(df_full, target_column='concentration')
         if X_tab_rf is not None and y_rf is not None and preprocessor_rf is not None:
+            # y_rf is already shifted by prepare_tabular_features
             rf_metrics = train_random_forest(X_tab_rf, y_rf, preprocessor_rf)
             all_metrics.append(rf_metrics)
     else:
@@ -280,17 +283,24 @@ def main():
     # Using 'processed_notes' if available from EDA, otherwise 'doctor_notes'
     text_col_for_lstm = 'processed_notes' if 'processed_notes' in df_full.columns else 'doctor_notes'
     if 'impulsivity' in df_full.columns and text_col_for_lstm in df_full.columns:
+        print(f"Attempting to prepare LSTM features with text_col: {text_col_for_lstm} and target: impulsivity")
         X_text_lstm, y_lstm, tokenizer_lstm = prepare_text_features(df_full, text_column_name=text_col_for_lstm, target_column_name='impulsivity')
+        print(f"LSTM features prepared. X_text_lstm is None: {X_text_lstm is None}. y_lstm is None: {y_lstm is None}")
+        if y_lstm is not None:
+            print(f"y_lstm head after preparation (first 5): {y_lstm[:5]}")
+
         if X_text_lstm is not None and y_lstm is not None:
              # Ensure y_lstm is integer type for sparse_categorical_crossentropy
+             # y_lstm is already shifted by prepare_text_features
             y_lstm = y_lstm.astype(int)
+            print(f"y_lstm head after astype(int) (first 5): {y_lstm[:5]}")
             lstm_metrics = train_lstm(X_text_lstm, y_lstm, tokenizer_lstm)
             all_metrics.append(lstm_metrics)
     else:
         print(f"Skipping LSTM: 'impulsivity' or '{text_col_for_lstm}' column not found.")
 
-    # --- CLSTM for 'concentration' (example, or could be impulsivity) using combined features ---
-    clstm_target = 'concentration' # Choose target for CLSTM
+    # --- CLSTM for 'concentration'  using combined features ---
+    clstm_target = 'concentration' 
     text_col_for_clstm = 'processed_notes' if 'processed_notes' in df_full.columns else 'doctor_notes'
 
     if clstm_target in df_full.columns and text_col_for_clstm in df_full.columns:
@@ -303,6 +313,7 @@ def main():
         if X_tab_clstm is not None and y_clstm_tabular_part is not None and preprocessor_clstm is not None and X_text_clstm is not None:
             # Align X_tab_clstm and X_text_clstm by index if they were derived from differently processed DFs (should be okay if both from df_full)
             # Ensure target y_clstm_tabular_part is integer for sparse_categorical_crossentropy
+            # y_clstm_tabular_part is already shifted by prepare_tabular_features
             y_clstm_tabular_part = y_clstm_tabular_part.astype(int)
             clstm_metrics = train_clstm(X_tab_clstm, X_text_clstm, y_clstm_tabular_part, preprocessor_clstm, tokenizer_clstm, target_name=clstm_target)
             all_metrics.append(clstm_metrics)

@@ -7,6 +7,7 @@ seaborn
 jupyter
 ipykernel
 spacy
+tensorflow~=2.12.0
 lime
 # For scispaCy - refer to their installation instructions for specific versions if needed
 # pip install https://s3-us-west-2.amazonaws.com/ai2-s2-scispacy/releases/v0.5.4/en_core_sci_md-0.5.4.tar.gz
