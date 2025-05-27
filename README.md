@@ -1,6 +1,6 @@
 # NLP Data Assessment Project
 
-This project focuses on NLP data assessment tasks, including data anonymization and potentially other NLP pipeline components.
+This project focuses on NLP data assessment tasks on simulated patient behavior data.
 
 ## Project Structure (Template)
 
