@@ -68,19 +68,16 @@ This project focuses on NLP data assessment tasks, including data anonymization 
 
 ## Usage
 
-.....instructions on how to run this project......
-
 Run Jupyter notebooks from the `notebooks` directory for EDA and model exploration.
 
-To run the main pipeline (once implemented):
+To run the main pipeline:
 ```bash
-python src/main.py
+python src/pipeline/training_pipeline.py
 ```
 
 
 ## TODO / Next Steps
 
-*   Implement the full ML pipeline in `src/pipeline/training_pipeline.py`.
 *   Develop components for data ingestion, transformation, etc., in `src/components/`.
 *   Integrate logging and exception handling throughout the application.
 *   Add unit tests.
