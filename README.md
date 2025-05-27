@@ -1,4 +1,4 @@
-# NLP Data Assessment Project
+# NLP Data Scientist Assessment Project
 
 This project focuses on NLP data assessment tasks on simulated patient behavior data.
 
