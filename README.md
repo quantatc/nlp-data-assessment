@@ -2,7 +2,7 @@
 
 This project focuses on NLP data assessment tasks, including data anonymization and potentially other NLP pipeline components.
 
-## Project Structure
+## Project Structure (Template)
 
 
 ```
