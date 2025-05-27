@@ -53,7 +53,7 @@ This project focuses on NLP data assessment tasks, including data anonymization 
 
 1. Clone the repository:
    ```bash
-   git clone <your-repo-url>
+   git clone https://github.com/quantatc/nlp-data-assessment.git
    cd nlp-data-assessment
    ```
 2. Create a virtual environment (recommended):
