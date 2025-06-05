@@ -1,6 +1,6 @@
-# NLP Data Scientist Assessment Project
+# NLP Data Scientist Project
 
-This project focuses on NLP data assessment tasks on simulated patient behavior data.
+This project focuses on NLP tasks on simulated patient behavior data.
 
 ## Project Structure (Template)
 
